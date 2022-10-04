@@ -1,10 +1,18 @@
-// - 메뉴의 이름을 입력 받고, 엔터키 입력으로 추가한다.
-// 추가되는 메뉴의 마크업은 
-
-
 const $ = (selector) => document.querySelector(selector);
 
+const store = {
+    setLocalStorage(menu) {
+        localStorage.setItem("menu", JSON.stringify(menu)); //Json 객체를 문자열로 저장할 수 있도록 함.
+    },
+    getLocalStorage() {
+        localStorage.getItem("menu");
+    }
+};
+
 function App(){
+    // 상태는 변하는 데이터, 이 앱에서 변하는 것 ? - 메뉴명
+    this.menu = [];
+
     const addMenuName = () => {
         if($("#espresso-menu-name").value === "") {
             alert("값을 입력해주세요.");
@@ -12,30 +20,29 @@ function App(){
         }
 
         const espressoMenuName = $("#espresso-menu-name").value;
-        const menuItemTempleate = (espressoMenuName) => {
-             return `
-                <li class="menu-list-item d-flex items-center py-2">
-                <span class="w-100 pl-2 menu-name">${espressoMenuName}</span>
+        this.menu.push({ name : espressoMenuName });
+        store.setLocalStorage(this.menu);
+        const template = this.menu.map((item, index) => {
+            return `
+                <li data-menu-id="${index}" class="menu-list-item d-flex items-center py-2">
+                <span class="w-100 pl-2 menu-name">${item.name}</span>
                 <button                    
                     type="button"
                     class="bg-gray-50 text-gray-500 text-sm mr-1 menu-edit-button"
                 >
-                  수정
+                수정
                 </button>
                 <button
                     type="button"
                     class="bg-gray-50 text-gray-500 text-sm menu-remove-button"        
                 >
-                 삭제
+                삭제
                 </button>
                 </li>`;
-            };
+        }).join("");
              // 새로운 메뉴를 입력하면 덮어씌워지는 문제가 발생한다. 새로운 메뉴명을 추가로 받고 싶으면 insertAdjacentHTML 을 사용하면 된다!
             // $("#espresso-menu-list").innerHTML = menuItemTempleate(espressoMenuName); 
-            $("#espresso-menu-list").insertAdjacentHTML(
-                "beforeend",
-                menuItemTempleate(espressoMenuName)
-            );
+            $("#espresso-menu-list").innerHTML = template;
             updateMenuCount();
             $("#espresso-menu-name").value = '' ;
     };
@@ -46,11 +53,11 @@ function App(){
     }
     
     const updateMenuName = (e) => {
+        const menuId = e.target.closest("li").dataset.menuId; // li data-menu-id="${index}" => menuId 에는 해당 index가 담긴다.
         const $menuName = e.target.closest("li").querySelector(".menu-name");
-        const updatedMenuName = prompt(
-            "메뉴명을 수정해주세요.",
-            $menuName.innerText
-        );
+        const updatedMenuName = prompt("메뉴명을 수정해주세요.",$menuName.innerText);
+        this.menu[menuId].name = updatedMenuName; // 해당 인덱스에 있는 값의 name을 수정된 메뉴명으로 변경시킨다.
+        store.setLocalStorage(this.menu);
         $menuName.innerText = updatedMenuName;
     }
 
@@ -85,4 +92,4 @@ function App(){
     });
 }
 
-App();
+const app = new App();
