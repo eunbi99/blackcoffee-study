@@ -1,4 +1,4 @@
-const $ = (selector) => document.querySelector(selector);
+import { $ } from "/utils/dom.js";
 
 const store = {
     setLocalStorage(menu) {
@@ -26,6 +26,7 @@ function App(){
             this.menu = store.getLocalStorage();
         }
         render();
+        initEventListeners();
     }
     
     const render = () => {
@@ -102,47 +103,51 @@ function App(){
         render();
     }
     
-    $("#menu-list").addEventListener("click", (e) => {
-        if(e.target.classList.contains("menu-edit-button")) {
-            updateMenuName(e);
-            return;
-        }
-
-        if(e.target.classList.contains("menu-remove-button")) {
-            removeMenuName(e);
-            return;
-        }
-
-        if(e.target.classList.contains("menu-sold-out-button")) {
-            soldOutMenu(e);
-            return;
-        }
-    });
-
-    $("#menu-form").addEventListener("submit", (e) => {
-        e.preventDefault();
-    });
-
-    $("#menu-submit-button").addEventListener("click", addMenuName);
-
-    $("#menu-name").addEventListener("keypress", (e) => {
-        if(e.key !== "Enter") {
-            return;
-        }
-        addMenuName(); 
-    });
-
-    $("nav").addEventListener("click", (e) => {
-        const isCategoryButton = e.target.classList.contains("cafe-category-name")
-        if (isCategoryButton) {
-            const categoryName = e.target.dataset.categoryName; // 데이터 속성은 HTML의 요소의 'data-'로 시작하는 속성이다. 이 값을 가져올 경우 dataset을 사용하자!
-            this.currentCategory = categoryName;
-            $("#category-title").innerHTML = `${e.target.innerText} 메뉴 관리`;
-            render();
-            console.log(categoryName);
-        }
-
-    })
+    const initEventListeners = () => {
+        $("#menu-list").addEventListener("click", (e) => {
+            if(e.target.classList.contains("menu-edit-button")) {
+                updateMenuName(e);
+                return;
+            }
+    
+            if(e.target.classList.contains("menu-remove-button")) {
+                removeMenuName(e);
+                return;
+            }
+    
+            if(e.target.classList.contains("menu-sold-out-button")) {
+                soldOutMenu(e);
+                return;
+            }
+        });
+    
+        $("#menu-form").addEventListener("submit", (e) => {
+            e.preventDefault();
+        });
+    
+        $("#menu-submit-button").addEventListener("click", addMenuName);
+    
+        $("#menu-name").addEventListener("keypress", (e) => {
+            if(e.key !== "Enter") {
+                return;
+            }
+            addMenuName(); 
+        });
+    
+        $("nav").addEventListener("click", (e) => {
+            const isCategoryButton = e.target.classList.contains("cafe-category-name")
+            if (isCategoryButton) {
+                const categoryName = e.target.dataset.categoryName; // 데이터 속성은 HTML의 요소의 'data-'로 시작하는 속성이다. 이 값을 가져올 경우 dataset을 사용하자!
+                this.currentCategory = categoryName;
+                $("#category-title").innerHTML = `${e.target.innerText} 메뉴 관리`;
+                render();
+                console.log(categoryName);
+            }
+    
+        })
+    }
+    
+    
 }
 
 const app = new App();
