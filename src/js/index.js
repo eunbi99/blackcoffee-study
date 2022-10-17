@@ -1,13 +1,18 @@
-import { $ } from "/utils/dom.js";
+import { $ } from "./utils/dom.js";
+import store from "./store/index.js";
 
-const store = {
-    setLocalStorage(menu) {
-        return localStorage.setItem("menu", JSON.stringify(menu)); //Json 객체를 문자열로 저장할 수 있도록 함.
-    },
-    getLocalStorage() {
-        return JSON.parse(localStorage.getItem("menu"));
-    }
-};
+// - 웹 서버를 띄운다.
+// - 서버에 새로운 메뉴명을 추가될 수 있도록 요청
+// - 서버에 카테고리별 메뉴리스트를 불러온다.
+// - 서버에 저장되어있는 메뉴가 수정될 수 있도록 요청한다.
+// - 서버 메뉴의 품절상태를 토글될 수 있도록 요청한다.
+// - 서버에 메뉴가 삭제 될 수 있도록 요청한다.
+
+// 리팩터링
+// - localstorage에 저장하는 로직은 지운다.
+// - fetch 비동기 api를 사용하는 부분을 
+
+const BASE_URL = "http://localhost:3000/api"
 
 function App(){
     // 상태는 변하는 데이터, 이 앱에서 변하는 것 ? - 메뉴명
@@ -60,17 +65,40 @@ function App(){
             updateMenuCount();
     }
 
-    const addMenuName = () => {
+    const addMenuName = async () => {
         if($("#menu-name").value === "") {
             alert("값을 입력해주세요.");
             return;
         }
 
         const menuName = $("#menu-name").value;
-        this.menu[this.currentCategory].push({ name : menuName });
-        store.setLocalStorage(this.menu);
-        render();
-        $("#menu-name").value = '' ;
+        
+        // async await을 사용하여 비동기통신의 순서를 보장해줄 수 있다. 
+        await fetch(`${BASE_URL}/category/${this.currentCategory}/menu`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ name: menuName }),
+        })
+        .then((response) => {
+            return response.json();
+        })
+        .then((data) => {
+            console.log(data);
+        });
+
+        await fetch(`${BASE_URL}/category/${this.currentCategory}/menu`)
+        .then((response) => {
+            return response.json();
+        })
+        .then((data) => {
+            console.log(data);
+            this.menu[this.currentCategory] = data;
+            render();
+            $("#menu-name").value = '' ;
+        })
+        
     };
 
     const updateMenuCount = () => {
