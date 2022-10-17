@@ -14,6 +14,25 @@ import store from "./store/index.js";
 
 const BASE_URL = "http://localhost:3000/api"
 
+const MenuApi = {
+    async getAllMenuByCategory(category) {
+        const response = await fetch(`${BASE_URL}/category/${category}/menu`)
+        return response.json();
+    },
+    async createMenu(category,name) {
+       const response = await fetch(`${BASE_URL}/category/${category}/menu`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ name }),
+        });
+        if(!response.ok) {
+            console.error('error 발생했습니다.');
+        }
+    }
+};
+
 function App(){
     // 상태는 변하는 데이터, 이 앱에서 변하는 것 ? - 메뉴명
     this.menu = { // 카테고리별 각각의 메뉴를 관리하기 위해 메뉴를 하나의 객체를 만들고 카테고리별 속성을 만든다!
@@ -26,10 +45,8 @@ function App(){
 
     this.currentCategory = "espresso"; // 초기 카테고리는 에스프레소로 설정한다!
 
-    this.init = () => { // 초기화 함수
-        if(store.getLocalStorage()) {
-            this.menu = store.getLocalStorage();
-        }
+    this.init = async() => { // 초기화 함수
+        this.menu[this.currentCategory] = await MenuApi.getAllMenuByCategory(this.currentCategory);
         render();
         initEventListeners();
     }
@@ -70,34 +87,11 @@ function App(){
             alert("값을 입력해주세요.");
             return;
         }
-
         const menuName = $("#menu-name").value;
-        
-        // async await을 사용하여 비동기통신의 순서를 보장해줄 수 있다. 
-        await fetch(`${BASE_URL}/category/${this.currentCategory}/menu`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ name: menuName }),
-        })
-        .then((response) => {
-            return response.json();
-        })
-        .then((data) => {
-            console.log(data);
-        });
-
-        await fetch(`${BASE_URL}/category/${this.currentCategory}/menu`)
-        .then((response) => {
-            return response.json();
-        })
-        .then((data) => {
-            console.log(data);
-            this.menu[this.currentCategory] = data;
-            render();
-            $("#menu-name").value = '' ;
-        })
+        await MenuApi.createMenu(this.currentCategory,menuName); // async await을 사용하여 비동기통신의 순서를 보장해줄 수 있다. 
+        this.menu[this.currentCategory] = await MenuApi.getAllMenuByCategory(this.currentCategory);
+        render();
+        $("#menu-name").value = "";
         
     };
 
@@ -162,14 +156,14 @@ function App(){
             addMenuName(); 
         });
     
-        $("nav").addEventListener("click", (e) => {
+        $("nav").addEventListener("click", async (e) => {
             const isCategoryButton = e.target.classList.contains("cafe-category-name")
             if (isCategoryButton) {
                 const categoryName = e.target.dataset.categoryName; // 데이터 속성은 HTML의 요소의 'data-'로 시작하는 속성이다. 이 값을 가져올 경우 dataset을 사용하자!
                 this.currentCategory = categoryName;
                 $("#category-title").innerHTML = `${e.target.innerText} 메뉴 관리`;
+                this.menu[this.currentCategory] = await MenuApi.getAllMenuByCategory(this.currentCategory);
                 render();
-                console.log(categoryName);
             }
     
         })
